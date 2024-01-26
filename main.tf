@@ -80,3 +80,27 @@ resource "aws_security_group" "my_sg" {
     }
   ]
 }
+
+resource "aws_key_pair" "my_auth" {
+  key_name   = "my_key"
+  public_key = file("~/.ssh/id_ed25519.pub")
+
+}
+
+resource "aws_instance" "dev_node" {
+  instance_type          = "t2.micro"
+  ami                    = data.aws_ami.server_ami.id
+  key_name               = aws_key_pair.my_auth.id
+  vpc_security_group_ids = [aws_security_group.my_sg.id]
+  subnet_id              = aws_subnet.my_public_subnet.id
+  user_data              = file("userdata.tpl")
+
+  tags = {
+    Name = "dev_node"
+  }
+
+  root_block_device {
+    volume_size = 10
+  }
+}
+  
